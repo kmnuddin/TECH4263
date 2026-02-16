@@ -1,2 +1,3 @@
-# TECH4263
-TECH 4263 master repo of ASP.NET Core Web API demos (by week/topic), from in-memory basics to CRUD, databases, files, and logging.
+**TECH 4263 — Server Application Technologies (ASP.NET Core Web API Demos)**
+
+This repository is the course master collection of **ASP.NET Core Web API examples** used throughout TECH 4263 (Server Application Technologies). Each folder contains a self-contained demo application that introduces one concept at a time—starting from simple in-memory APIs and progressing to more realistic patterns such as request/response design, validation, CRUD operations, database integration, file handling, logging, and other server-side fundamentals. The demos are organized by module/week and are intended to support lectures, labs, and step-by-step learning. Individual applications may also be published separately as standalone repositories for assignments and student reference.
