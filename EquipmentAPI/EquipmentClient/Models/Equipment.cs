@@ -1,4 +1,4 @@
-﻿namespace EquipmentAPI.Models
+﻿namespace EquipmentClient.Models
 {
     public class Equipment
     {
