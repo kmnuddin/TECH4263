@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentAPI", "StudentAPI\St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentClient", "StudentClient\StudentClient.csproj", "{9B7A4E70-B3E9-4C67-B43C-2A52E8B39A31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentDashboard", "StudentDashboard\StudentDashboard.csproj", "{DCCB4991-4381-5779-71B9-0BED0E5AF48C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9B7A4E70-B3E9-4C67-B43C-2A52E8B39A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B7A4E70-B3E9-4C67-B43C-2A52E8B39A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B7A4E70-B3E9-4C67-B43C-2A52E8B39A31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCCB4991-4381-5779-71B9-0BED0E5AF48C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCCB4991-4381-5779-71B9-0BED0E5AF48C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCCB4991-4381-5779-71B9-0BED0E5AF48C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCCB4991-4381-5779-71B9-0BED0E5AF48C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
