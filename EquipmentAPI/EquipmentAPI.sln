@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentClient", "EquipmentClient\EquipmentClient.csproj", "{BE314AD5-F7D6-42C0-9DC4-5FFB01D8AF81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentDashboard", "EquipmentDashboard\EquipmentDashboard.csproj", "{DD839D1C-479D-43B2-AB7B-4CDC861558CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{BE314AD5-F7D6-42C0-9DC4-5FFB01D8AF81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE314AD5-F7D6-42C0-9DC4-5FFB01D8AF81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE314AD5-F7D6-42C0-9DC4-5FFB01D8AF81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD839D1C-479D-43B2-AB7B-4CDC861558CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD839D1C-479D-43B2-AB7B-4CDC861558CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD839D1C-479D-43B2-AB7B-4CDC861558CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD839D1C-479D-43B2-AB7B-4CDC861558CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
