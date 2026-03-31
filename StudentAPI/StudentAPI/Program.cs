@@ -1,11 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using StudentAPI.Data;
 using StudentAPI.Models;
 using System.Data.SqlClient;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -18,82 +23,52 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-var students = new List<Student>(); // In-memory list to store students for demo purposes
+
 
 // POST /students
-app.MapPost("/students", async (CreateStudentDto dto) =>
+app.MapPost("/students", async (CreateStudentDto dto, AppDbContext context) =>
 {
-    using var connection = new SqlConnection(connectionString);
-    await connection.OpenAsync();
+    var student = new Student(dto.Name, dto.Age, dto.Major);
 
-    // OUTPUT INSERTED.Id returns the auto-generated Id from SQL Server
-    using var command = new SqlCommand(
-        @"INSERT INTO Students (Name, Age, Major)
-          OUTPUT INSERTED.Id
-          VALUES (@Name, @Age, @Major)", connection);
+    context.Students.Add(student);
+    await context.SaveChangesAsync();
 
-    command.Parameters.AddWithValue("@Name", dto.Name);
-    command.Parameters.AddWithValue("@Age", dto.Age);
-    command.Parameters.AddWithValue("@Major", dto.Major);
-
-    // ExecuteScalarAsync returns the single value from OUTPUT INSERTED.Id
-    var newId = (int)(await command.ExecuteScalarAsync())!;
-
-    return Results.Created($"/students/{newId}", new StudentResponseDto
+    return Results.Created($"/students/{student.Id}", new StudentResponseDto
     {
-        Id = newId,
+        Id = student.Id,
         Name = dto.Name,
         Major = dto.Major
     });
 }).WithName("CreateStudent").WithOpenApi();
 
-app.MapGet("/students", async () =>
+app.MapGet("/students", async (AppDbContext context) =>
 {
-    var students = new List<StudentResponseDto>();
+    var students = await context.Students.ToListAsync();
 
-    using var connection = new SqlConnection(connectionString);
-    await connection.OpenAsync();
+   
 
-    using var command = new SqlCommand("SELECT Id, Name, Major FROM Students", connection);
-    using var reader = await command.ExecuteReaderAsync();
-
-    while (await reader.ReadAsync())
+    return Results.Ok(students.Select(s => new StudentResponseDto 
     {
-        students.Add(new StudentResponseDto
-        {
-            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-            Name = reader.GetString(reader.GetOrdinal("Name")),
-            Major = reader.GetString(reader.GetOrdinal("Major"))
-        });
-    }
-
-    return Results.Ok(students);
+        Id = s.Id,
+        Name = s.Name,
+        Major = s.Major
+    }));
 }).WithName("GetStudents").WithOpenApi();
 
 // GET /students/{id}
-app.MapGet("/students/{id:int:min(1)}", async (int id) =>
+app.MapGet("/students/{id:int:min(1)}", async (int id, AppDbContext context) =>
 {
-    using var connection = new SqlConnection(connectionString);
-    await connection.OpenAsync();
+    var student = await context.Students.FindAsync(id);
 
-    using var command = new SqlCommand(
-        "SELECT Id, Name, Major FROM Students WHERE Id = @Id", connection);
-
-    // Always use parameters — never concatenate user input into SQL
-    command.Parameters.AddWithValue("@Id", id);
-
-    using var reader = await command.ExecuteReaderAsync();
-
-    if (!await reader.ReadAsync())
+    if (student is null)
         return Results.NotFound();
 
     return Results.Ok(new StudentResponseDto
     {
-        Id = reader.GetInt32(reader.GetOrdinal("Id")),
-        Name = reader.GetString(reader.GetOrdinal("Name")),
-        Major = reader.GetString(reader.GetOrdinal("Major"))
+        Id = student.Id,
+        Name = student.Name,
+        Major = student.Major
     });
 }).WithName("GetStudentById").WithOpenApi();
 

@@ -1,8 +1,10 @@
-﻿namespace StudentAPI.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace StudentAPI.Models
 {
     public class Student
     {   
-        private static int _nextId = 1; // simple auto-increment for demo purposes
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }              // server assigns
         public string Name { get; set; } = "";   // required
         public int Age { get; set; }             // simple field
@@ -10,7 +12,7 @@
 
         public Student(string name, int age, string major) 
         {
-            Id = _nextId++; // auto-assign unique ID
+       
             Name = name;
             Age = age;
             Major = major;
