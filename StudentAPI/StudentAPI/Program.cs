@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using StudentAPI.Auth;
 using StudentAPI.Data;
 using StudentAPI.Models;
 using System.Data.SqlClient;
@@ -8,9 +10,39 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("basic", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "basic",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter your username and password"
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id   = "basic"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAuthentication("BasicAuth")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuth", null);
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -23,8 +55,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
+// These two lines must come in this order
+app.UseAuthentication();
+app.UseAuthorization();
 
 // POST /students
 app.MapPost("/students", async (CreateStudentDto dto, AppDbContext context) =>
@@ -40,7 +73,7 @@ app.MapPost("/students", async (CreateStudentDto dto, AppDbContext context) =>
         Name = dto.Name,
         Major = dto.Major
     });
-}).WithName("CreateStudent").WithOpenApi();
+}).WithName("CreateStudent").WithOpenApi().RequireAuthorization();
 
 app.MapGet("/students", async (AppDbContext context) =>
 {
@@ -54,7 +87,7 @@ app.MapGet("/students", async (AppDbContext context) =>
         Name = s.Name,
         Major = s.Major
     }));
-}).WithName("GetStudents").WithOpenApi();
+}).WithName("GetStudents").WithOpenApi().RequireAuthorization();
 
 // GET /students/{id}
 app.MapGet("/students/{id:int:min(1)}", async (int id, AppDbContext context) =>
@@ -70,7 +103,7 @@ app.MapGet("/students/{id:int:min(1)}", async (int id, AppDbContext context) =>
         Name = student.Name,
         Major = student.Major
     });
-}).WithName("GetStudentById").WithOpenApi();
+}).WithName("GetStudentById").WithOpenApi().RequireAuthorization();
 
 app.Run();
 
