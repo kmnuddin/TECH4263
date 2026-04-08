@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using StudentAPI.Data;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -7,18 +9,18 @@ namespace StudentAPI.Auth
 {
     public class BasicAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public BasicAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IConfiguration config) : base(options, logger, encoder)
+        public BasicAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, AppDbContext context) : base(options, logger, encoder)
         {
-            _config = config;
+            _context = context;
         }
 
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (!Request.Headers.ContainsKey("Authorization"))
             {
-                return Task.FromResult(AuthenticateResult.Fail("Missing Authorization Header"));
+                return AuthenticateResult.Fail("Missing Authorization Header");
             }
             try 
             {
@@ -27,22 +29,27 @@ namespace StudentAPI.Auth
                 var credentials = System.Text.Encoding.UTF8.GetString(credentialBytes).Split(':');
                 var username = credentials[0];
                 var password = credentials[1];
-                if (username == _config["BasicAuth:Username"] && password == _config["BasicAuth:Password"])
+                
+                var hashedPassword = Helpers.PasswordHasher.Hash(password);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username && u.PasswordHash == hashedPassword);
+                if (user == null)
                 {
-                    var claims = new[] { new Claim(ClaimTypes.Name, username) };
-                    var identity = new ClaimsIdentity(claims, Scheme.Name);
-                    var principal = new ClaimsPrincipal(identity);
-                    var ticket = new AuthenticationTicket(principal, Scheme.Name);
-                    return Task.FromResult(AuthenticateResult.Success(ticket));
+                    return AuthenticateResult.Fail("Invalid Username or Password");
                 }
-                else
-                {
-                    return Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
-                }
+
+                var claims = new[] {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, user.Role)
+                };
+                var identity = new ClaimsIdentity(claims, Scheme.Name);
+                var principal = new ClaimsPrincipal(identity);
+                var ticket = new AuthenticationTicket(principal, Scheme.Name);
+                return AuthenticateResult.Success(ticket);
             }
             catch
             {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization Header"));
+                return AuthenticateResult.Fail("Invalid Authorization Header Format");
 
             }
         }

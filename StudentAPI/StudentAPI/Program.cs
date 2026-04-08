@@ -73,7 +73,7 @@ app.MapPost("/students", async (CreateStudentDto dto, AppDbContext context) =>
         Name = dto.Name,
         Major = dto.Major
     });
-}).WithName("CreateStudent").WithOpenApi().RequireAuthorization();
+}).WithName("CreateStudent").WithOpenApi().RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 app.MapGet("/students", async (AppDbContext context) =>
 {
@@ -104,6 +104,8 @@ app.MapGet("/students/{id:int:min(1)}", async (int id, AppDbContext context) =>
         Major = student.Major
     });
 }).WithName("GetStudentById").WithOpenApi().RequireAuthorization();
+
+
 
 app.Run();
 
