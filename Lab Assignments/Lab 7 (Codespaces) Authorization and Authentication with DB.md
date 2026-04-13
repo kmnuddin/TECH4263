@@ -1,5 +1,5 @@
 # TECH 4263 — Lab Assignment 7 (Codespaces Version)
-## DB Authentication & Role-Based Authorization with EquipmentAPI
+## DB Authentication & Role-Based Authorization with StudentAPI
 ### Using SQLite
 
 **Course:** TECH 4263 — Server Application Technologies
@@ -16,10 +16,10 @@ This is the Codespaces version of Lab 7. Since SQL Server cannot run in Codespac
 
 ## Part 1 — Verify SQLite is Already Configured
 
-If you completed the EF Core Codespaces guide earlier, your `EquipmentAPI` already has SQLite set up. Confirm by checking:
+If you completed the EF Core Codespaces guide earlier, your `StudentAPI` already has SQLite set up. Confirm by checking:
 
 ```bash
-cat EquipmentAPI/EquipmentAPI/appsettings.json
+cat StudentAPI/StudentAPI/appsettings.json
 ```
 
 You should see:
@@ -27,7 +27,7 @@ You should see:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=equipment.db"
+    "DefaultConnection": "Data Source=student.db"
   }
 }
 ```
@@ -35,13 +35,13 @@ You should see:
 And check the `.csproj` to confirm the SQLite package is installed:
 
 ```bash
-cat EquipmentAPI/EquipmentAPI/EquipmentAPI.csproj
+cat StudentAPI/StudentAPI/StudentAPI.csproj
 ```
 
 You should see `Microsoft.EntityFrameworkCore.Sqlite` in the package references. If not, install it:
 
 ```bash
-cd EquipmentAPI/EquipmentAPI
+cd StudentAPI/StudentAPI
 dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 8.0.0
 ```
 
@@ -55,13 +55,13 @@ Create `Models/User.cs` with four properties: `Id`, `Username`, `PasswordHash`, 
 
 ## Part 3 — Update AppDbContext
 
-Add a `DbSet<User>` property to your existing `AppDbContext` alongside `DbSet<Equipment>`.
+Add a `DbSet<User>` property to your existing `AppDbContext` alongside `DbSet<Student>`.
 
 ---
 
 ## Part 4 — Create a Migration for the Users Table
 
-Since you are in Codespaces, you need to run the migration manually to add the `Users` table to your `equipment.db` file.
+Since you are in Codespaces, you need to run the migration manually to add the `Users` table to your `student.db` file.
 
 Make sure the `dotnet ef` tool is installed and on your PATH:
 
@@ -73,20 +73,20 @@ export PATH="$PATH:$HOME/.dotnet/tools"
 Create and apply the migration:
 
 ```bash
-cd EquipmentAPI/EquipmentAPI
+cd StudentAPI/StudentAPI
 dotnet ef migrations add AddUsersTable
 dotnet ef database update
 ```
 
-This adds the `Users` table to `equipment.db` automatically. You do not need SSMS.
+This adds the `Users` table to `student.db` automatically. You do not need SSMS.
 
 Confirm the migration ran by checking the database:
 
 ```bash
-sqlite3 equipment.db ".tables"
+sqlite3 student.db ".tables"
 ```
 
-You should see both `Equipments` and `Users` in the output.
+You should see both `Students` and `Users` in the output.
 
 ---
 
@@ -103,7 +103,7 @@ Add a **temporary** endpoint to `Program.cs` to generate hashes:
 ```csharp
 // Temporary — remove after use
 app.MapGet("/hash/{password}", (string password) =>
-    Results.Ok(EquipmentAPI.Helpers.PasswordHasher.Hash(password)));
+    Results.Ok(StudentAPI.Helpers.PasswordHasher.Hash(password)));
 ```
 
 Run the API:
@@ -117,7 +117,7 @@ Open the **Ports** tab, set the port to **Public**, and open `/swagger` in the b
 Then insert the users directly into the SQLite database:
 
 ```bash
-sqlite3 equipment.db
+sqlite3 student.db
 ```
 
 Inside the SQLite shell, run:
@@ -169,9 +169,9 @@ Make the following changes to `Program.cs`:
 
 | Endpoint | Who can access |
 |----------|---------------|
-| `GET /equipments` | Any authenticated user |
-| `GET /equipments/{id}` | Any authenticated user |
-| `POST /equipments` | Admin only |
+| `GET /students` | Any authenticated user |
+| `GET /students/{id}` | Any authenticated user |
+| `POST /students` | Admin only |
 
 ---
 
@@ -188,19 +188,19 @@ Open the **Ports** tab → set port to **Public** → open `/swagger`.
 Test the following scenarios:
 
 **Scenario 1 — No credentials:**
-Call `GET /equipments` without logging in → expect `401 Unauthorized`
+Call `GET /students` without logging in → expect `401 Unauthorized`
 
 **Scenario 2 — Viewer reads:**
-Click Authorize → enter `viewer` / `viewerpass` → call `GET /equipments` → expect `200 OK`
+Click Authorize → enter `viewer` / `viewerpass` → call `GET /students` → expect `200 OK`
 
 **Scenario 3 — Viewer creates:**
-With viewer credentials → call `POST /equipments` → expect `403 Forbidden`
+With viewer credentials → call `POST /students` → expect `403 Forbidden`
 
 **Scenario 4 — Admin creates:**
-Click Authorize → enter `admin` / `adminpass` → call `POST /equipments` → expect `201 Created`
+Click Authorize → enter `admin` / `adminpass` → call `POST /students` → expect `201 Created`
 
 **Scenario 5 — Wrong password:**
-Click Authorize → enter `admin` / `wrongpassword` → call `GET /equipments` → expect `401 Unauthorized`
+Click Authorize → enter `admin` / `wrongpassword` → call `GET /students` → expect `401 Unauthorized`
 
 ---
 
@@ -227,7 +227,7 @@ using Microsoft.EntityFrameworkCore;
 **Getting 401 with correct credentials:**
 The hash in the database may not match what your `PasswordHasher` produces. Re-run the temporary `/hash/{password}` endpoint, copy the exact output, and update the Users table:
 ```bash
-sqlite3 equipment.db
+sqlite3 student.db
 UPDATE Users SET PasswordHash = 'new-hash-here' WHERE Username = 'viewer';
 SELECT * FROM Users;
 .quit
@@ -240,7 +240,7 @@ SELECT * FROM Users;
 | | Task | Points |
 |--|------|--------|
 | 1 | `User` entity and `DbSet<User>` added to `AppDbContext` | 2 |
-| 2 | Migration created and applied — `Users` table exists in `equipment.db` | 2 |
+| 2 | Migration created and applied — `Users` table exists in `student.db` | 2 |
 | 3 | `PasswordHasher.cs` implemented using SHA-256 | 2 |
 | 4 | `BasicAuthHandler` queries the database and attaches Name and Role claims | 4 |
 | 5 | Two users inserted with correctly hashed passwords | 2 |
@@ -254,14 +254,14 @@ SELECT * FROM Users;
 
 - [ ] `Models/User.cs` created with correct properties
 - [ ] `DbSet<User>` added to `AppDbContext`
-- [ ] Migration created and applied — `Users` table visible in `equipment.db`
+- [ ] Migration created and applied — `Users` table visible in `student.db`
 - [ ] `Helpers/PasswordHasher.cs` created using SHA-256
 - [ ] `Auth/BasicAuthHandler.cs` queries Users table, attaches Name and Role claims
 - [ ] Two users (`admin` and `viewer`) inserted with hashed passwords
 - [ ] Temporary `/hash/{password}` endpoint removed from `Program.cs`
 - [ ] Swagger Authorize button visible
-- [ ] `GET /equipments` returns `200` for both `admin` and `viewer`
-- [ ] `POST /equipments` returns `403` for `viewer` and `201` for `admin`
+- [ ] `GET /students` returns `200` for both `admin` and `viewer`
+- [ ] `POST /students` returns `403` for `viewer` and `201` for `admin`
 - [ ] Unauthenticated requests return `401`
 - [ ] GitHub repo link submitted on Canvas
 
