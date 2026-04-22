@@ -47,11 +47,11 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 
@@ -104,6 +104,10 @@ app.MapGet("/students/{id:int:min(1)}", async (int id, AppDbContext context) =>
         Major = student.Major
     });
 }).WithName("GetStudentById").WithOpenApi().RequireAuthorization();
+
+// Temporary — remove after use
+app.MapGet("/hash/{password}", (string password) =>
+    Results.Ok(StudentAPI.Helpers.PasswordHasher.Hash(password)));
 
 
 

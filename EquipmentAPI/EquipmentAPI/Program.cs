@@ -1,4 +1,6 @@
+using EquipmentAPI.Data;
 using EquipmentAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -18,33 +22,37 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//app.MapPost("/createequipment", (string name, string category, string status, string location) => { ... })
-//   .WithName("CreateEquipment")
-//   .WithOpenApi();
 
-
-//app.MapGet("/getequipments", () => { ... })
-//   .WithName("GetEquipments")
-//   .WithOpenApi();
-
-//app.MapGet("/getequipment/{id}", (int id) => { ... })
-//   .WithName("GetEquipmentById")
-//   .WithOpenApi();
-
-var equipments = new List<Equipment>();
-
-app.MapPost("/createequipment", (Equipment eq) =>
+app.MapPost("/equipment", async (CreateEquipmentDto equipmentDto, AppDbContext context) =>
 {
-    equipments.Add(eq);
-    return Results.Created($"/getequipment/{eq.Id}", eq);
+    var equipment = new Equipment
+    {
+        Name = equipmentDto.Name,
+        Category = equipmentDto.Category,
+        Status = equipmentDto.Status,
+        Location = equipmentDto.Location
+    };
+    context.Equipments.Add(equipment);
+    await context.SaveChangesAsync();
+    return Results.Created($"/equipment/{equipment.Id}", equipment);
 }).WithName("CreateEquipment").WithOpenApi();
 
-app.MapGet("/getequipments", () => Results.Ok(equipments)).WithName("GetEquipments").WithOpenApi();
-
-app.MapGet("/getequipment/{id}", (int id) =>
+app.MapGet("/equipment", async (AppDbContext context) =>
 {
-    var eq = equipments.FirstOrDefault(e => e.Id == id);
-    return eq != null ? Results.Ok(eq) : Results.NotFound();
+    var equipments = await context.Equipments.ToListAsync();
+    return Results.Ok(equipments);
+}).WithName("GetEquipments").WithOpenApi();
+
+app.MapGet("/equipment/{id}", async (int id, AppDbContext context) =>
+{
+    var eq = await context.Equipments.FindAsync(id);
+    return eq != null ? Results.Ok(new ResponseEquipmentDto
+    {
+        Id = eq.Id,
+        Name = eq.Name,
+        Category = eq.Category,
+        Status = eq.Status
+    }) : Results.NotFound();
 }).WithName("GetEquipmentById").WithOpenApi();
 
 
